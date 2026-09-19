@@ -1,8 +1,9 @@
-# omarchy-predator-widget
+# Predator Control
 
 An [Omarchy](https://omarchy.org/) bar widget for Acer Predator laptops running
 [Linuwu-Sense](https://github.com/0x7375646F/Linuwu-Sense). Built and tested on a
 **Predator Triton 300 PT315-53** (i7-11800H, RTX 3060).
+Unofficial community project, not affiliated with or endorsed by Acer.
 
 ![Bar](screenshots/bar.png)
 
