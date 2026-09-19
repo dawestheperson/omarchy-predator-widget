@@ -33,7 +33,7 @@ The bar shows `CPU 43°  GPU 37°` live. Clicking it drops down a panel with:
 
 ```bash
 omarchy plugin add https://github.com/dawestheperson/omarchy-predator-widget.git --enable
-omarchy bar move acer.predator --after omarchy.clock
+omarchy bar move dawestheperson.predator --after omarchy.clock
 ```
 
 The control files are root-only, so run the setup script once. It installs a
@@ -42,7 +42,7 @@ small boot service that makes the fan, battery and CPU-cap files writable by the
 speed and charge limits.**
 
 ```bash
-sudo bash ~/.config/omarchy/plugins/acer.predator/install-perms.sh
+sudo bash ~/.config/omarchy/plugins/dawestheperson.predator/install-perms.sh
 ```
 
 If controls stop working after a module reload:
@@ -68,7 +68,7 @@ Undo: `sudo systemctl disable --now predator-sense-perms && sudo rm /etc/systemd
 
 | File | Purpose |
 |---|---|
-| `manifest.json` | Plugin manifest (plugin id `acer.predator`) |
+| `manifest.json` | Plugin manifest (plugin id `dawestheperson.predator`) |
 | `Panel.qml` | Bar button and dropdown |
 | `stats.sh` | One-shot JSON telemetry, read-only |
 | `install-perms.sh` | One-time permissions service (run with sudo) |

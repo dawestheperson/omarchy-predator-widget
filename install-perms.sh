@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run once:  sudo bash ~/.config/omarchy/plugins/acer.predator/install-perms.sh
+# Run once:  sudo bash ~/.config/omarchy/plugins/dawestheperson.predator/install-perms.sh
 # 1. Installs a boot service that makes the Linuwu-Sense fan, battery and CPU-cap control
 #    files group-writable by `wheel`, so the bar panel can change them without a
 #    password prompt on every slider move.

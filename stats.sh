@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One-shot telemetry for the acer.predator bar widget. Prints a single JSON
+# One-shot telemetry for the dawestheperson.predator bar widget. Prints a single JSON
 # line. Read-only: never wakes a suspended dGPU and never touches one that is
 # not bound to the nvidia driver (same policy as predator-stats).
 set -u
@@ -30,7 +30,7 @@ for d in /sys/bus/pci/devices/*; do
     # Every nvidia-smi call resets the dGPU's idle timer, so polling it every
     # couple of seconds keeps it awake forever. Reuse a cached reading unless it
     # is older than $1 seconds (0 = always fresh, used while the panel is open).
-    cache=${XDG_RUNTIME_DIR:-/tmp}/acer-predator-gpu.csv
+    cache=${XDG_RUNTIME_DIR:-/tmp}/dawestheperson-predator-gpu.csv
     max_age=${1:-30}
     if [[ -s $cache ]] && (( $(date +%s) - $(stat -c %Y "$cache") < max_age )); then
       out=$(<"$cache")

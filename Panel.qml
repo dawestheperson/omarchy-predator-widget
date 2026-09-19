@@ -7,8 +7,8 @@ import qs.Commons
 
 Panel {
   id: root
-  moduleName: "acer.predator"
-  ipcTarget: "acer.predator"
+  moduleName: "dawestheperson.predator"
+  ipcTarget: "dawestheperson.predator"
 
   readonly property string cpuCapPath: "/sys/devices/system/cpu/intel_pstate/max_perf_pct"
   readonly property string sensePath: "/sys/devices/platform/acer-wmi/predator_sense"
@@ -108,7 +108,7 @@ Panel {
     property var pending: null
     stderr: StdioCollector { id: writeErr; waitForEnd: true }
     onExited: function(code) {
-      root.writeError = code === 0 ? "" : "Permission denied. Run once: sudo bash ~/.config/omarchy/plugins/acer.predator/install-perms.sh"
+      root.writeError = code === 0 ? "" : "Permission denied. Run once: sudo bash ~/.config/omarchy/plugins/dawestheperson.predator/install-perms.sh"
       root.holdUntil = Date.now() + 1500
       if (pending) {
         var p = pending; pending = null
