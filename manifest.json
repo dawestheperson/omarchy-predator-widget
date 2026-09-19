@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
   "id": "dawestheperson.predator",
-  "name": "Predator",
+  "name": "Predator Control",
   "version": "1.0.0",
   "author": "dawestheperson",
   "description": "CPU/GPU temps in the bar with a dropdown for RAM, fan control, CPU cap and battery limit",
   "kinds": ["bar-widget"],
   "entryPoints": { "barWidget": "Panel.qml" },
   "barWidget": {
-    "displayName": "Predator",
+    "displayName": "Predator Control",
     "description": "CPU/GPU temps with a Predator Sense control dropdown",
     "category": "System",
     "allowMultiple": false,
