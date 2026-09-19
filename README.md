@@ -72,3 +72,8 @@ Undo: `sudo systemctl disable --now predator-sense-perms && sudo rm /etc/systemd
 | `Panel.qml` | Bar button and dropdown |
 | `stats.sh` | One-shot JSON telemetry, read-only |
 | `install-perms.sh` | One-time permissions service (run with sudo) |
+| `LICENSE` | MIT |
+
+## License
+
+[MIT](LICENSE)
