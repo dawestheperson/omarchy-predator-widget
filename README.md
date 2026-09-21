@@ -59,6 +59,10 @@ Undo: `sudo systemctl disable --now predator-sense-perms && sudo rm /etc/systemd
 - **`fan_speed` format** is `cpu,gpu` percent; `0,0` means firmware auto.
 - **Keyboard RGB is not included.** Linuwu-Sense only creates `four_zoned_kb` for
   models with a quirk entry, and the PT315-53 has none.
+- **GPU cache is private.** The short-lived `nvidia-smi` cache is kept in a
+  `0700`, owner-checked directory under `$XDG_RUNTIME_DIR` and replaced
+  atomically without following symlinks. Without such a directory there is no
+  cache file at all; nothing is written to `/tmp`.
 - **The CPU cap resets at reboot**, like any sysfs setting.
 - The widget uses Omarchy's internal shell UI components, which aren't a stable
   API. A large shell update could require small edits.

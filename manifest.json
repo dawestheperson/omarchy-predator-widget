@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "dawestheperson.predator",
   "name": "Predator Control",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "dawestheperson",
   "description": "CPU/GPU temps in the bar with a dropdown for RAM, fan control, CPU cap and battery limit",
   "kinds": ["bar-widget"],
