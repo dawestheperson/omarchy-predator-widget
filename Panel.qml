@@ -54,6 +54,7 @@ Panel {
   function applyStats(s) {
     root.stats = s
     if (Date.now() < holdUntil) return
+    root.parseKb(s.kb_zones)
     var parts = String(s.fan_set || "0,0").split(",")
     var c = parseInt(parts[0], 10), g = parseInt(parts[1], 10)
     var manual = (c > 0 || g > 0)
@@ -80,6 +81,45 @@ Panel {
     root.fanPercent = Math.round(p)
     if (!root.fanAuto) writeSysfs(sensePath + "/fan_speed", root.fanPercent + "," + root.fanPercent)
   }
+  // ---- keyboard RGB ----
+  // per_zone_mode reads/writes "RRGGBB,RRGGBB,RRGGBB,RRGGBB,brightness" (zones left to right).
+  readonly property string kbPath: "/sys/devices/platform/acer-wmi/four_zoned_kb/per_zone_mode"
+  readonly property string permsScript: Qt.resolvedUrl("install-perms.sh").toString().replace("file://", "")
+  readonly property var kbPresets: ["ff0000", "ff6000", "ffd000", "00ff40", "00ffff", "0060ff", "8000ff", "ff00c0", "ffffff"]
+  property var kbZones: ["ffffff", "ffffff", "ffffff", "ffffff"]
+  property int kbBrightness: 100
+  property int kbLastBrightness: 100
+  property string kbTarget: "All"   // "All" or zone "1".."4"
+  readonly property string kbState: String(stats.kb_state || "none")
+  readonly property bool kbWritable: kbState === "writable"
+
+  function parseKb(z) {
+    var m = /^([0-9a-fA-F]{6}),([0-9a-fA-F]{6}),([0-9a-fA-F]{6}),([0-9a-fA-F]{6}),([0-9]{1,3})$/.exec(String(z || ""))
+    if (!m) return
+    root.kbZones = [m[1].toLowerCase(), m[2].toLowerCase(), m[3].toLowerCase(), m[4].toLowerCase()]
+    root.kbBrightness = Math.min(100, parseInt(m[5], 10))
+    if (root.kbBrightness > 0) root.kbLastBrightness = root.kbBrightness
+  }
+  function writeKb() {
+    writeSysfs(kbPath, root.kbZones.join(",") + "," + root.kbBrightness)
+  }
+  function setKbColor(hex) {
+    if (!/^[0-9a-f]{6}$/.test(hex)) return
+    var z = root.kbZones.slice()
+    if (root.kbTarget === "All") z = [hex, hex, hex, hex]
+    else z[parseInt(root.kbTarget, 10) - 1] = hex
+    root.kbZones = z
+    if (root.kbBrightness === 0) root.kbBrightness = root.kbLastBrightness
+    writeKb()
+  }
+  function setKbBrightness(b) {
+    root.kbBrightness = Math.max(0, Math.min(100, Math.round(b)))
+    if (root.kbBrightness > 0) root.kbLastBrightness = root.kbBrightness
+    writeKb()
+  }
+  function setKbOn(on) { setKbBrightness(on ? root.kbLastBrightness : 0) }
+  function enableKbControl() { if (!permsProc.running) permsProc.running = true }
+
   function setCpuCap(on) { writeSysfs(cpuCapPath, on ? 80 : 100) }
   function setBatteryLimit(on) { writeSysfs(sensePath + "/battery_limiter", on ? 1 : 0) }
 
@@ -117,6 +157,17 @@ Panel {
       } else {
         root.refresh()
       }
+    }
+  }
+
+  // One-time unlock: runs install-perms.sh as root via a polkit password prompt,
+  // so later color/brightness changes need no password.
+  Process {
+    id: permsProc
+    command: ["pkexec", "bash", root.permsScript]
+    onExited: function(code) {
+      root.writeError = code === 0 ? "" : "Keyboard unlock was cancelled or failed."
+      root.refresh()
     }
   }
 
@@ -243,6 +294,103 @@ Panel {
           }
 
           PanelSeparator { foreground: root.bar.foreground }
+
+          // ---------- Keyboard RGB ----------
+          SectionRow {
+            visible: root.kbState !== "none"
+            title: "KEYBOARD"
+            value: root.kbBrightness > 0 ? root.kbBrightness + "%" : "OFF"
+          }
+          Row {
+            // Live preview of the four zones, left to right. Click one to edit just that zone.
+            visible: root.kbState !== "none"
+            width: parent.width
+            spacing: Style.space(6)
+            Repeater {
+              model: 4
+              Rectangle {
+                required property int index
+                width: (parent.width - Style.space(6) * 3) / 4
+                height: Style.space(18)
+                radius: Style.space(4)
+                color: "#" + root.kbZones[index]
+                opacity: root.kbBrightness > 0 ? 1 : 0.3
+                border.width: root.kbTarget === String(index + 1) ? 2 : 0
+                border.color: root.bar.foreground
+                MouseArea {
+                  anchors.fill: parent
+                  cursorShape: Qt.PointingHandCursor
+                  onClicked: root.kbTarget = (root.kbTarget === String(index + 1)) ? "All" : String(index + 1)
+                }
+              }
+            }
+          }
+          ButtonGroup {
+            visible: root.kbWritable
+            options: [{ value: "All", label: "All zones" }, "1", "2", "3", "4"]
+            value: root.kbTarget
+            focusable: false
+            foreground: root.bar.foreground
+            fontFamily: root.bar.fontFamily
+            onChanged: function(v) { root.kbTarget = v }
+          }
+          Flow {
+            visible: root.kbWritable
+            width: parent.width
+            spacing: Style.space(8)
+            Repeater {
+              model: root.kbPresets
+              Rectangle {
+                required property string modelData
+                width: Style.space(28)
+                height: width
+                radius: width / 2
+                color: "#" + modelData
+                border.width: swatchMouse.containsMouse ? 2 : 1
+                border.color: Qt.rgba(root.bar.foreground.r, root.bar.foreground.g, root.bar.foreground.b, swatchMouse.containsMouse ? 0.9 : 0.25)
+                MouseArea {
+                  id: swatchMouse
+                  anchors.fill: parent
+                  hoverEnabled: true
+                  cursorShape: Qt.PointingHandCursor
+                  onClicked: root.setKbColor(modelData)
+                }
+              }
+            }
+          }
+          PanelSlider {
+            visible: root.kbWritable
+            width: parent.width
+            bar: root.bar
+            minimum: 0
+            maximum: 100
+            step: 10
+            integer: true
+            value: root.kbBrightness
+            onReleased: function(v) { root.setKbBrightness(v) }
+          }
+          Toggle {
+            visible: root.kbWritable
+            width: parent.width
+            label: "Keyboard lights"
+            description: "Turn the backlight on or off"
+            checked: root.kbBrightness > 0
+            foreground: root.bar.foreground
+            fontFamily: root.bar.fontFamily
+            onClicked: root.setKbOn(root.kbBrightness === 0)
+          }
+          Button {
+            visible: root.kbState === "readonly"
+            width: parent.width
+            text: permsProc.running ? "Waiting for password…" : "Enable color control (asks for password once)"
+            bordered: true
+            enabled: !permsProc.running
+            foreground: root.bar.foreground
+            fontFamily: root.bar.fontFamily
+            onClicked: root.enableKbControl()
+          }
+
+          PanelSeparator { visible: root.kbState !== "none"; foreground: root.bar.foreground }
 
           // ---------- Battery ----------
           SectionRow {
