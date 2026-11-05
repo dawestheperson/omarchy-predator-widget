@@ -22,6 +22,10 @@ The bar shows `CPU 43°  GPU 37°` live. Clicking it drops down a panel with:
   running, so there's no jump
 - **Battery**: charge level and a *Limit charge to 80%* toggle
   (`predator_sense/battery_limiter`)
+- **Keyboard**: live preview of the four RGB zones, color presets for all zones or
+  one zone, brightness slider and on/off (`four_zoned_kb/per_zone_mode`). The first
+  time, an *Enable color control* button asks for your password once (polkit) to run
+  `install-perms.sh`
 
 ## Requirements
 
@@ -38,7 +42,7 @@ omarchy bar move dawestheperson.predator --after omarchy.clock
 ```
 
 The control files are root-only, so run the setup script once. It installs a
-small boot service that makes the fan, battery and CPU-cap files writable by the
+small boot service that makes the fan, battery, keyboard RGB and CPU-cap files writable by the
 `wheel` group. Read it first; **any process running as you can then change fan
 speed and charge limits.**
 
@@ -57,8 +61,10 @@ Undo: `sudo systemctl disable --now predator-sense-perms && sudo rm /etc/systemd
   (`rpmCurve`) was measured on a PT315-53. On other models, re-measure it by
   writing `N,N` to `fan_speed` and reading `fan1_input`.
 - **`fan_speed` format** is `cpu,gpu` percent; `0,0` means firmware auto.
-- **Keyboard RGB is not included.** Linuwu-Sense only creates `four_zoned_kb` for
-  models with a quirk entry, and the PT315-53 has none.
+- **Keyboard RGB needs a model entry.** Linuwu-Sense only creates `four_zoned_kb` for
+  models with a quirk entry. Upstream has none for the PT315-53; a one-line DMI entry
+  pointing it at the PH315-53 quirk (which arms the LED zones at load) makes all four
+  zones work. Without that, the Keyboard section stays hidden.
 - **GPU cache is private.** The short-lived `nvidia-smi` cache is kept in a
   `0700`, owner-checked directory under `$XDG_RUNTIME_DIR` and replaced
   atomically without following symlinks. Without such a directory there is no

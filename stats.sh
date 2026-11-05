@@ -5,6 +5,7 @@
 set -u
 umask 077
 PS=/sys/devices/platform/acer-wmi/predator_sense
+KB=/sys/devices/platform/acer-wmi/four_zoned_kb/per_zone_mode
 
 num()  { [[ ${1:-} =~ ^-?[0-9]+(\.[0-9]+)?$ ]] && printf '%s' "$1" || printf 'null'; }
 str()  { printf '"%s"' "$(printf '%s' "${1:-}" | tr -cd 'A-Za-z0-9 ._:,/+-')"; }
@@ -82,11 +83,19 @@ bat_st=$(read1 /sys/class/power_supply/BAT1/status)
 cpu_cap=$(read1 /sys/devices/system/cpu/intel_pstate/max_perf_pct)
 cpu_khz=$(cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_cur_freq 2>/dev/null | sort -n | tail -n1)
 fan_set=$(read1 "$PS/fan_speed"); limit=$(read1 "$PS/battery_limiter")
+# Keyboard RGB: "RRGGBB,RRGGBB,RRGGBB,RRGGBB,brightness" (zones left to right).
+kb_zones=""; kb_state="none"
+if [[ -e $KB ]]; then
+  kb_zones=$(read1 "$KB")
+  [[ $kb_zones =~ ^[0-9a-fA-F]{6}(,[0-9a-fA-F]{6}){3},[0-9]{1,3}$ ]] || kb_zones=""
+  [[ -w $KB ]] && kb_state="writable" || kb_state="readonly"
+fi
 
 printf '{"cpu_t":%s,"fan1":%s,"fan2":%s,"ram_total_kb":%s,"ram_avail_kb":%s,' \
   "$(num "$cpu_t")" "$(num "$fan1")" "$(num "$fan2")" "$(num "$mt")" "$(num "$ma")"
 printf '"gpu":{"state":%s,"name":%s,"temp":%s,"util":%s,"power":%s,"mem_used":%s,"mem_total":%s,"mem_reserved":%s,"mem_free":%s,"driver":%s,"runtime":%s,"control":%s},' \
   "$(str "$gpu_state")" "$(str "$g_name")" "$(num "$g_t")" "$(num "$g_u")" "$(num "$g_w")" "$(num "$g_mu")" "$(num "$g_mt")" "$(num "$g_mr")" "$(num "$g_mf")" \
   "$(str "$gpu_drv")" "$(str "$gpu_rt")" "$(str "$gpu_ctl")"
-printf '"cpu_cap":%s,"cpu_khz":%s,"fan_set":%s,"batt_limit":%s,"batt_cap":%s,"batt_status":%s}\n' \
-  "$(num "$cpu_cap")" "$(num "$cpu_khz")" "$(str "$fan_set")" "$(num "$limit")" "$(num "$bat_cap")" "$(str "$bat_st")"
+printf '"cpu_cap":%s,"cpu_khz":%s,"fan_set":%s,"batt_limit":%s,"batt_cap":%s,"batt_status":%s,"kb_zones":%s,"kb_state":%s}\n' \
+  "$(num "$cpu_cap")" "$(num "$cpu_khz")" "$(str "$fan_set")" "$(num "$limit")" "$(num "$bat_cap")" "$(str "$bat_st")" \
+  "$(str "$kb_zones")" "$(str "$kb_state")"
